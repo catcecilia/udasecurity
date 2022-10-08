@@ -126,7 +126,7 @@ public class SecurityService {
      * @param currentCameraImage
      */
     public void processImage(BufferedImage currentCameraImage) {
-        catDetected(imageService.imageContainsCat(currentCameraImage, 50.0f));
+        catDetected(ImageService.imageContainsCat(currentCameraImage, 50.0f));
     }
 
     public AlarmStatus getAlarmStatus() {

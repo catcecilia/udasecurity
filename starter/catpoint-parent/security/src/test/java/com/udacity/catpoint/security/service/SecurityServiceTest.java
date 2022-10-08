@@ -1,5 +1,6 @@
 package com.udacity.catpoint.security.service;
 
+import com.udacity.catpoint.security.application.StatusListener;
 import com.udacity.catpoint.security.data.AlarmStatus;
 import com.udacity.catpoint.security.data.ArmingStatus;
 import com.udacity.catpoint.security.data.SecurityRepository;
@@ -15,19 +16,28 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.awt.image.BufferedImage;
+
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class SecurityServiceTest {
 
     @Mock
-    Sensor sensor;
+    private Sensor sensor;
 
     @Mock
-    ImageService imageService;
+    private ImageService imageService;
 
     @Mock
-    SecurityRepository securityRepository;
+    private SecurityRepository securityRepository;
+
+    @Mock
+    private BufferedImage image;
+
+    @Mock
+    private StatusListener statusListener;
 
     @InjectMocks
     SecurityService securityService;
@@ -92,18 +102,32 @@ public class SecurityServiceTest {
         securityService.changeSensorActivationStatus(sensor, false );
         verify(securityRepository,never()).setAlarmStatus(any());
     }
-//    //Test 7     If the image service identifies an image containing a cat while the system is armed-home, put the system into alarm status.
+    //Test 7     If the image service identifies an image containing a cat while the system is armed-home, put the system into alarm status.
+    @Test
+    void processImage_cat_armedHome_toAlarm(){
+        when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
+        when(imageService.imageContainsCat(image, 50.0f)).thenReturn(true);
+
+        securityService.processImage(image);
+        verify(securityRepository).setAlarmStatus(AlarmStatus.ALARM);
+    }
+    //Test 8     If the image service identifies an image that does not contain a cat, change the status to no alarm as long as the sensors are not active.
 //    @Test
+//    wtf why you no work, damn public static etc
+//    void when_CatImageFalse_SensorNotActive_AlartStateOff(){
+//        when(ImageService.imageContainsCat(image, 50.0f)).thenReturn(false);
+//        when(sensor.getActive()).thenReturn(false);
 //
-//    //Test 8     If the image service identifies an image that does not contain a cat, change the status to no alarm as long as the sensors are not active.
-//    @Test
-//
+//        securityService.processImage(image);
+//        verify(securityRepository).setAlarmStatus(AlarmStatus.NO_ALARM);
+//    }
 //    //Test 9     If the system is disarmed, set the status to no alarm.
 //    @Test
 //
 //    //Test 10    If the system is armed, reset all sensors to inactive.
 //    @Test
 //
-//    //Test 11    If the system is armed-home while the camera shows a cat, set the alarm status to alarm.
-//    @Test
+    //Test 11    If the system is armed-home while the camera shows a cat, set the alarm status to alarm.
+    //@Test
 }
+
