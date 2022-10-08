@@ -57,9 +57,10 @@ public class SecurityService {
      * @param cat True if a cat is detected, otherwise false.
      */
     private void catDetected(Boolean cat) {
+        hasCat = cat;
         if(cat && getArmingStatus() == ArmingStatus.ARMED_HOME) {
             setAlarmStatus(AlarmStatus.ALARM);
-        } else {
+        } else if (!cat && !anyActive()){
             setAlarmStatus(AlarmStatus.NO_ALARM);
         }
 
@@ -90,8 +91,8 @@ public class SecurityService {
     /**
      * Internal method for updating the alarm status when a sensor has been activated.
      */
-    void handleSensorActivated() {
-        if(securityRepository.getArmingStatus() == ArmingStatus.DISARMED) {
+    public void handleSensorActivated() {
+        if(securityRepository.getArmingStatus() == ArmingStatus.DISARMED || securityRepository.getAlarmStatus() == AlarmStatus.ALARM) {
             return; //no problem if the system is disarmed
         }
         switch(securityRepository.getAlarmStatus()) {
@@ -103,7 +104,7 @@ public class SecurityService {
     /**
      * Internal method for updating the alarm status when a sensor has been deactivated
      */
-    void handleSensorDeactivated() {
+    public void handleSensorDeactivated() {
         switch(securityRepository.getAlarmStatus()) {
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.NO_ALARM);
             case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
@@ -120,6 +121,10 @@ public class SecurityService {
             handleSensorActivated();
         } else if (sensor.getActive() && !active) {
             handleSensorDeactivated();
+        }  else if (sensor.getActive() && active) {
+            if (getAlarmStatus() == AlarmStatus.PENDING_ALARM) {
+                setAlarmStatus(AlarmStatus.ALARM);
+            }
         }
         sensor.setActive(active);
         securityRepository.updateSensor(sensor);
@@ -153,4 +158,9 @@ public class SecurityService {
     public ArmingStatus getArmingStatus() {
         return securityRepository.getArmingStatus();
     }
+
+    public boolean anyActive(){
+        return securityRepository.anyActive();
+    }
 }
+
