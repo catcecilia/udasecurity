@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -18,6 +19,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.awt.image.BufferedImage;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.mockito.Mockito.*;
 
@@ -38,13 +41,22 @@ public class SecurityServiceTest {
 
     @Mock
     private StatusListener statusListener;
-
+    private Set<Sensor> getSensors(){
+        Set<Sensor> sensors = new HashSet<>();
+        sensors.add(sensor);
+        return sensors;
+    }
     @InjectMocks
     SecurityService securityService;
 
     @BeforeEach
     public void setupEach() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @BeforeEach
+    void init(){
+        securityService = new SecurityService(securityRepository, imageService);
     }
 
     //Test 1     If alarm is armed and a sensor becomes activated, put the system into pending alarm status.
@@ -112,15 +124,14 @@ public class SecurityServiceTest {
         verify(securityRepository).setAlarmStatus(AlarmStatus.ALARM);
     }
     //Test 8     If the image service identifies an image that does not contain a cat, change the status to no alarm as long as the sensors are not active.
-//    @Test
-//    wtf why you no work, damn public static etc
-//    void when_CatImageFalse_SensorNotActive_AlartStateOff(){
-//        when(ImageService.imageContainsCat(image, 50.0f)).thenReturn(false);
-//        when(sensor.getActive()).thenReturn(false);
-//
-//        securityService.processImage(image);
-//        verify(securityRepository).setAlarmStatus(AlarmStatus.NO_ALARM);
-//    }
+    @Test
+    void when_CatImageFalse_SensorNotActive_AlartStateOff(){
+        when(imageService.imageContainsCat(image, 50.0f)).thenReturn(false);
+        when(sensor.getActive()).thenReturn(false);
+
+        securityService.processImage(image);
+        verify(securityRepository).setAlarmStatus(AlarmStatus.NO_ALARM);
+    }
 //    //Test 9     If the system is disarmed, set the status to no alarm.
 //    @Test
 //

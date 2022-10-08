@@ -104,7 +104,7 @@
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.22.1</version>
+          <version>3.0.0-M7</version>
         </plugin>
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
@@ -130,4 +130,14 @@
       </plugins>
     </pluginManagement>
   </build>
+  <reporting>
+    <!-- https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations -->
+    <plugins>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.4.2</version>
+      </plugin>
+    </plugins>
+  </reporting>
 </project>
