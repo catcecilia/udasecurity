@@ -100,12 +100,12 @@ public class SecurityServiceTest {
     }
     //Test 5     If a sensor is activated while already active and the system is in pending state, change it to alarm state.
     @Test
-    void when_AlarmActive_SensorsActive_setPendingtoAlarm(){
-        when(sensor.getActive()).thenReturn(true);
+    void when_AlarmActive_SensorsActive_setPendingAlarm(){
         when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
-
+        sensor.setActive(true);
         securityService.changeSensorActivationStatus(sensor, true);
-        verify(securityRepository).setAlarmStatus(AlarmStatus.ALARM);
+
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
     }
     //Test 6     If a sensor is deactivated while already inactive, make no changes to the alarm state.
     @Test
@@ -125,20 +125,33 @@ public class SecurityServiceTest {
     }
     //Test 8     If the image service identifies an image that does not contain a cat, change the status to no alarm as long as the sensors are not active.
     @Test
-    void when_CatImageFalse_SensorNotActive_AlartStateOff(){
+    void when_CatImageFalse_SensorNotActive_AlertStateOff(){
         when(imageService.imageContainsCat(image, 50.0f)).thenReturn(false);
-        when(sensor.getActive()).thenReturn(false);
 
         securityService.processImage(image);
         verify(securityRepository).setAlarmStatus(AlarmStatus.NO_ALARM);
     }
-//    //Test 9     If the system is disarmed, set the status to no alarm.
-//    @Test
-//
-//    //Test 10    If the system is armed, reset all sensors to inactive.
-//    @Test
-//
+    //Test 9     If the system is disarmed, set the status to no alarm.
+    @Test
+    void systemDisarmed_SetNoAlarm(){
+        securityService.setArmingStatus(ArmingStatus.DISARMED);
+        verify(securityRepository).setAlarmStatus(AlarmStatus.NO_ALARM);
+    }
+    //Test 10    If the system is armed, reset all sensors to inactive.
+    @Test
+    void systemArmed_resetAllSensors(){
+        when(securityRepository.getSensors()).thenReturn(getSensors());
+        securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
+        verify(sensor).setActive(false);
+    }
     //Test 11    If the system is armed-home while the camera shows a cat, set the alarm status to alarm.
-    //@Test
+    @Test
+    void systemArmed_ImageHasCat_setAlarm(){
+        when(securityService.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
+        when(imageService.imageContainsCat(image, 50.0f)).thenReturn(true);
+        securityService.processImage(image);
+        securityService.setAlarmStatus(AlarmStatus.ALARM);
+        verify(securityRepository, atLeast(1)).setAlarmStatus(AlarmStatus.ALARM);
+    }
 }
 
