@@ -5,7 +5,9 @@ import com.udacity.catpoint.security.data.SecurityRepository;
 import com.udacity.catpoint.security.application.StatusListener;
 import com.udacity.catpoint.security.data.AlarmStatus;
 import com.udacity.catpoint.security.data.Sensor;
+import com.udacity.catpoint.security.image.service.AwsImageService;
 import com.udacity.catpoint.security.image.service.FakeImageService;
+import com.udacity.catpoint.security.image.service.ImageService;
 
 import java.awt.image.BufferedImage;
 import java.util.HashSet;
@@ -20,13 +22,16 @@ import java.util.Set;
  */
 public class SecurityService {
 
-    private FakeImageService imageService;
+    private ImageService imageService;
     private SecurityRepository securityRepository;
     private Set<StatusListener> statusListeners = new HashSet<>();
 
-    public SecurityService(SecurityRepository securityRepository, FakeImageService imageService) {
+    public SecurityService(SecurityRepository securityRepository, ImageService imageService) {
         this.securityRepository = securityRepository;
         this.imageService = imageService;
+    }
+    public SecurityService(SecurityRepository securityRepository) {
+        this(securityRepository, new FakeImageService());
     }
 
     /**
@@ -80,7 +85,7 @@ public class SecurityService {
     /**
      * Internal method for updating the alarm status when a sensor has been activated.
      */
-    private void handleSensorActivated() {
+    void handleSensorActivated() {
         if(securityRepository.getArmingStatus() == ArmingStatus.DISARMED) {
             return; //no problem if the system is disarmed
         }
@@ -93,7 +98,7 @@ public class SecurityService {
     /**
      * Internal method for updating the alarm status when a sensor has been deactivated
      */
-    private void handleSensorDeactivated() {
+    void handleSensorDeactivated() {
         switch(securityRepository.getAlarmStatus()) {
             case PENDING_ALARM -> setAlarmStatus(AlarmStatus.NO_ALARM);
             case ALARM -> setAlarmStatus(AlarmStatus.PENDING_ALARM);
